@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AkmalStore</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: linear-gradient(135deg,#00c6ff,#00ff88);
+}
+
+header {
+  text-align: center;
+  color: white;
+  padding: 15px;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  background: white;
+  color: #00b894;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-weight: bold;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 10px;
+}
+
+.box {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.step {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* INPUT */
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* TAB */
+.tabs {
+  display: flex;
+  gap: 5px;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: #eee;
+  font-weight: bold;
+}
+
+.tab.active {
+  background: #00b894;
+  color: white;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.card {
+  border: 2px solid #eee;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.card.selected {
+  border: 2px solid #00b894;
+}
+
+.price {
+  color: #00b894;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: gray;
+  color: white;
+  font-weight: bold;
+}
+
+button.active {
+  background: #ff5722;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">A</div>
+  <h3>AkmalStore</h3>
+</header>
+
+<div class="container">
+
+<!-- STEP 1 -->
+<div class="box">
+  <div class="step">1. Masukkan ID</div>
+  <select id="game">
+    <option>Free Fire</option>
+    <option>Free Fire MAX</option>
+  </select>
+  <input type="text" id="playerId" placeholder="Masukkan ID Player">
+</div>
+
+<!-- STEP 2 -->
+<div class="box">
+  <div class="step">2. Pilih Item</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('diamond')">Diamond</button>
+    <button class="tab" onclick="showTab('member')">Membership</button>
+    <button class="tab" onclick="showTab('pass')">Pass</button>
+  </div>
+
+  <div id="diamondList" class="grid"></div>
+  <div id="memberList" class="grid" style="display:none;"></div>
+  <div id="passList" class="grid" style="display:none;"></div>
+</div>
+
+<!-- STEP 3 -->
+<div class="box">
+  <div class="step">3. Konfirmasi</div>
+  <div id="info">Belum pilih item</div>
+  <button id="buyBtn" onclick="beli()">Beli Sekarang</button>
+</div>
+
+</div>
+
+<script>
+let selected = null;
+
+// 🔥 BASE HARGA
+let diamonds = [
+  {name:"5 Diamonds", base:909},
+  {name:"12 Diamonds", base:1808},
+  {name:"50 Diamonds", base:7272},
+  {name:"70 Diamonds", base:9090},
+  {name:"100 Diamonds", base:14544},
+  {name:"140 Diamonds", base:18180},
+  {name:"190 Diamonds", base:25452},
+  {name:"280 Diamonds", base:36360},
+  {name:"355 Diamonds", base:45450},
+  {name:"500 Diamonds", base:64539},
+  {name:"720 Diamonds", base:90900},
+  {name:"2200 Diamonds", base:279972},
+  {name:"3640 Diamonds", base:461772},
+  {name:"7290 Diamonds", base:909000},
+  {name:"36500 Diamonds", base:4545000},
+  {name:"73100 Diamonds", base:9090000},
+];
+
+let membership = [
+  {name:"Mingguan Membership", base:27546},
+  {name:"Bulanan Membership", base:83463}
+];
+
+let pass = [
+  {name:"Level Up Pass Lv 6", base:5009},
+  {name:"Level Up Pass Lv 10", base:7000},
+  {name:"Level Up Pass Lv 20", base:8347},
+  {name:"Level Up Pass Lv 30", base:13354}
+];
+
+// 🔥 SMART PRICE
+function tambahHarga(arr){
+  return arr.map(p => {
+    let tambahan = p.base < 20000 ? 1000 : 2000;
+    return {
+      name: p.name,
+      price: p.base + tambahan
+    };
+  });
+}
+
+diamonds = tambahHarga(diamonds);
+membership = tambahHarga(membership);
+pass = tambahHarga(pass);
+
+// RENDER
+function render(id, data){
+  let el = document.getElementById(id);
+
+  data.forEach(p => {
+    let div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <div>${p.name}</div>
+      <div class="price">Rp ${p.price.toLocaleString()}</div>
+    `;
+
+    div.onclick = () => {
+      selected = p;
+      document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+      div.classList.add("selected");
+
+      document.getElementById("info").innerText =
+        `${p.name} - Rp ${p.price.toLocaleString()}`;
+
+      document.getElementById("buyBtn").classList.add("active");
+    };
+
+    el.appendChild(div);
+  });
+}
+
+render("diamondList", diamonds);
+render("memberList", membership);
+render("passList", pass);
+
+// TAB
+function showTab(type){
+  document.getElementById("diamondList").style.display="none";
+  document.getElementById("memberList").style.display="none";
+  document.getElementById("passList").style.display="none";
+
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+
+  if(type==="diamond"){
+    document.getElementById("diamondList").style.display="grid";
+    document.querySelectorAll(".tab")[0].classList.add("active");
+  }
+  if(type==="member"){
+    document.getElementById("memberList").style.display="grid";
+    document.querySelectorAll(".tab")[1].classList.add("active");
+  }
+  if(type==="pass"){
+    document.getElementById("passList").style.display="grid";
+    document.querySelectorAll(".tab")[2].classList.add("active");
+  }
+}
+
+// WA
+function beli(){
+  let id = document.getElementById("playerId").value;
+  let game = document.getElementById("game").value;
+
+  if(!selected){
+    alert("Pilih item dulu!");
+    return;
+  }
+
+  if(id===""){
+    alert("Isi ID dulu!");
+    return;
+  }
+
+  let nomor="628988111147";
+
+  let pesan=`Saya ingin membeli diamond FF%0A
+Game: ${game}%0A
+ID: ${id}%0A
+Item: ${selected.name}%0A
+Harga: Rp ${selected.price}%0A
+Pembayaran: DANA`;
+
+  window.open(`https://wa.me/${nomor}?text=${pesan}`);
+}
+</script>
+
+</body>
+</html>
